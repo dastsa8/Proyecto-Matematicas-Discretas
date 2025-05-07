@@ -1,35 +1,24 @@
-document.getElementById('sendBtn').addEventListener('click', sendMessage);
-document.getElementById('userInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') sendMessage();
-});
+document.getElementById("sendBtn").addEventListener("click", async () => {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+    const chatbox = document.getElementById("messages");
 
-function addMessage(sender, text) {
-    const messages = document.getElementById('messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('mb-2');
-    msgDiv.innerHTML = <strong>${sender}:</strong>; {text};
-    messages.appendChild(msgDiv);
-    messages.scrollTop = messages.scrollHeight;
-}
+    if (message === "") return;
 
-async function sendMessage() {
-    const input = document.getElementById('userInput');
-    const text = input.value.trim();
-    if (!text) return;
+    // Mostrar mensaje del usuario
+    chatbox.innerHTML += `<div><strong>Tú:</strong> ${message}</div>`;
 
-    addMessage('Tú', text);
+    // Enviar a Flask
+    const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensaje: message })
+    });
+
+    const data = await response.json();
+
+    // Mostrar respuesta del bot
+    chatbox.innerHTML += `<div><strong>Bot:</strong> ${data.respuesta}</div>`;
     input.value = '';
-
-    try {
-        const response = await fetch('https://TU-REPLIT-URL/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text })
-        });
-
-        const data = await response.json();
-        addMessage('ChatBot', data.reply);
-    } catch (error) {
-        addMessage('ChatBot', 'Error al conectar con el servidor.');
-    }
-}
+    chatbox.scrollTop = chatbox.scrollHeight;
+});
